@@ -82,7 +82,7 @@ jobs:
                   password: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Build and publish image
-              uses: chainguard-dev/actions/apko-publish@main
+              uses: chainguard-images/actions/apko-publish@main
               with:
                   config: apko.yaml
                   tag: ghcr.io/${{ github.repository }}:latest

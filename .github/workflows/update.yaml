@@ -15,43 +15,25 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
-            - name: Check for new release
-              id: check
+            - uses: actions/setup-go@v5
+              with:
+                  go-version-file: tools/update/go.mod
+                  cache-dependency-path: tools/update/go.sum
+
+            - name: Check for update and patch melange.yaml
+              id: update
               env:
                   GH_TOKEN: ${{ github.token }}
-              run: |
-                  latest=$(gh release view --repo liujed/dns01proxy --json tagName -q '.tagName' | sed 's/^v//')
-                  current=$(grep 'version:' melange.yaml | head -1 | sed 's/.*version: "\(.*\)"/\1/')
-                  echo "latest=${latest}" >> "$GITHUB_OUTPUT"
-                  echo "current=${current}" >> "$GITHUB_OUTPUT"
-                  if [ "${latest}" != "${current}" ]; then
-                    echo "update=true" >> "$GITHUB_OUTPUT"
-                  fi
-
-            - name: Get commit SHA for new tag
-              if: steps.check.outputs.update == 'true'
-              id: commit
-              env:
-                  GH_TOKEN: ${{ github.token }}
-              run: |
-                  sha=$(gh api "repos/liujed/dns01proxy/commits/v${{ steps.check.outputs.latest }}" -q '.sha')
-                  echo "sha=${sha}" >> "$GITHUB_OUTPUT"
-
-            - name: Update melange.yaml
-              if: steps.check.outputs.update == 'true'
-              env:
-                  NEW_VERSION: ${{ steps.check.outputs.latest }}
-                  NEW_SHA: ${{ steps.commit.outputs.sha }}
-              run: |
-                  sed -i "s/version: \"[0-9.]*\"/version: \"${NEW_VERSION}\"/" melange.yaml
-                  sed -i "s/expected-commit: [a-f0-9]*/expected-commit: ${NEW_SHA}/" melange.yaml
+                  MELANGE_CONFIG: ../../melange.yaml
+              working-directory: tools/update
+              run: go run .
 
             - name: Create pull request
-              if: steps.check.outputs.update == 'true'
+              if: steps.update.outputs.updated == 'true'
               uses: peter-evans/create-pull-request@v7
               with:
-                  title: "Update dns01proxy to v${{ steps.check.outputs.latest }}"
-                  branch: update/dns01proxy-${{ steps.check.outputs.latest }}
-                  commit-message: "melange: update dns01proxy to v${{ steps.check.outputs.latest }}"
+                  title: "Update dns01proxy to v${{ steps.update.outputs.latest }}"
+                  branch: update/dns01proxy-${{ steps.update.outputs.latest }}
+                  commit-message: "melange: update dns01proxy to v${{ steps.update.outputs.latest }}"
                   body: |
-                      Automated version bump of dns01proxy from v${{ steps.check.outputs.current }} to v${{ steps.check.outputs.latest }}.
+                      Automated version bump of dns01proxy from v${{ steps.update.outputs.current }} to v${{ steps.update.outputs.latest }}.
