@@ -1,36 +1,40 @@
 package:
-  name: dns01proxy
-  version: "0.1.17"
-  epoch: 0
-  description: Proxy server for ACME DNS-01 challenges
-  copyright:
-    - license: Apache-2.0
-  dependencies:
-    runtime:
-      - ca-certificates-bundle
+    name: dns01proxy
+    version: "0.1.17"
+    epoch: 0
+    description: Proxy server for ACME DNS-01 challenges
+    copyright:
+        - license: Apache-2.0
+    dependencies:
+        runtime:
+            - ca-certificates-bundle
 
 environment:
-  contents:
-    packages:
-      - busybox
-      - ca-certificates-bundle
-      - go-1.26
-  environment:
-    CGO_ENABLED: "0"
+    contents:
+        repositories:
+            - https://packages.wolfi.dev/os
+        keyring:
+            - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+        packages:
+            - busybox
+            - ca-certificates-bundle
+            - go-1.26
+    environment:
+        CGO_ENABLED: "0"
 
 pipeline:
-  - uses: git-checkout
-    with:
-      repository: https://github.com/liujed/dns01proxy
-      tag: v${{package.version}}
-      expected-commit: 943774f753e7aab867cda631b92223dfeca6439b
+    - uses: git-checkout
+      with:
+          repository: https://github.com/liujed/dns01proxy
+          tag: v${{package.version}}
+          expected-commit: 943774f753e7aab867cda631b92223dfeca6439b
 
-  - uses: go/build
-    with:
-      packages: ./cmd/dns01proxy
-      output: dns01proxy
-      go-package: go-1.26
+    - uses: go/build
+      with:
+          packages: ./cmd/dns01proxy
+          output: dns01proxy
+          go-package: go-1.26
 
 test:
-  pipeline:
-    - runs: /usr/bin/dns01proxy --help
+    pipeline:
+        - runs: /usr/bin/dns01proxy --help
