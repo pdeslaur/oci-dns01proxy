@@ -1,0 +1,15 @@
+# melange build outputs
+packages/
+melange-extra-repos.yaml
+
+# apko build outputs
+*.tar.gz
+*.sbom.json
+
+# signing keys
+*.rsa
+*.rsa.pub
+melange.rsa*
+
+# local dev
+.env
