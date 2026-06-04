@@ -19,7 +19,16 @@ permissions:
 
 jobs:
     build:
-        runs-on: ubuntu-latest
+        runs-on: ${{ matrix.runner }}
+        strategy:
+            fail-fast: false
+            matrix:
+                arch: [x86_64, aarch64]
+                include:
+                    - arch: aarch64
+                      runner: ubuntu-latest-arm
+                    - arch: x86_64
+                      runner: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
 
@@ -28,7 +37,44 @@ jobs:
               with:
                   config: melange.yaml
                   sign-with-temporary-key: true
-                  archs: x86_64,aarch64
+                  archs: ${{ matrix.arch }}
+
+            - name: Upload packages
+              uses: actions/upload-artifact@v4
+              with:
+                  name: packages-${{ matrix.arch }}
+                  path: ./packages
+                  retention-days: 1
+                  if-no-files-found: error
+
+    publish:
+        runs-on: ubuntu-latest
+        needs: build
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: chainguard-dev/actions/setup-melange@main
+
+            - name: Download x86_64 packages
+              uses: actions/download-artifact@v4
+              with:
+                  name: packages-x86_64
+                  path: ./packages
+
+            - name: Download aarch64 packages
+              uses: actions/download-artifact@v4
+              with:
+                  name: packages-aarch64
+                  path: ./packages
+
+            - name: Re-index packages under a single key
+              run: |
+                  melange keygen melange.rsa
+                  for arch in x86_64 aarch64; do
+                    melange sign -k melange.rsa packages/$arch/*.apk
+                    melange index -o packages/$arch/APKINDEX.tar.gz packages/$arch/*.apk
+                    melange sign-index --signing-key melange.rsa packages/$arch/APKINDEX.tar.gz
+                  done
 
             - name: Login to GHCR
               uses: docker/login-action@v3
@@ -38,9 +84,9 @@ jobs:
                   password: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Build and publish image
-              uses: chainguard-dev/actions/apko-build@main
+              uses: chainguard-dev/actions/apko-publish@main
               with:
                   config: apko.yaml
                   tag: ghcr.io/${{ github.repository }}:latest
-                  keyring-append: ./packages/melange.rsa.pub
+                  keyring-append: ./melange.rsa.pub
                   repository-append: ./packages
