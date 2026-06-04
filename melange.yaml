@@ -29,11 +29,37 @@ pipeline:
           tag: v${{package.version}}
           expected-commit: 943774f753e7aab867cda631b92223dfeca6439b
 
+    - name: Generate all-providers main
+      runs: |
+          mkdir -p ./cmd/all
+          {
+            echo 'package main'
+            echo ''
+            echo 'import ('
+            for p in \
+              acmedns acmeproxy alidns all-inkl arvancloud azure bluecat bunny \
+              cloudflare cloudns conoha desec digitalocean directadmin dnsimple dode \
+              domainnameshop duckdns dynu dynv6 easydns edgeone gandi gcore glesys \
+              godaddy googleclouddns he hetzner httpnet huaweicloud infomaniak inwx \
+              ionos linode loopia luadns mailinabox metaname mijnhost mythicbeasts \
+              namecheap namesilo nanelo netcup netlify netnod nfsn njalla ovh \
+              porkbun powerdns pph regery regfish rfc2136 route53 scaleway servercow \
+              simplydotcom spaceship tecnocratica tencentcloud thelittlehost timeweb \
+              transip unifi volcengine vultr websupport wedos westcn; do
+                echo "	_ \"github.com/caddy-dns/$p\""
+            done
+            echo '	"github.com/liujed/dns01proxy/cmd"'
+            echo ')'
+            echo ''
+            echo 'func main() { cmd.Execute() }'
+          } > ./cmd/all/main.go
+
     - uses: go/build
       with:
-          packages: ./cmd/dns01proxy
+          packages: ./cmd/all
           output: dns01proxy
           go-package: go-1.26
+          tags: nobadger,nomysql,nopgx
 
 test:
     pipeline:

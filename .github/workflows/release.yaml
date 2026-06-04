@@ -30,7 +30,15 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
+            - name: Restore cached packages
+              id: cache
+              uses: actions/cache@v4
+              with:
+                  path: ./packages
+                  key: melange-${{ matrix.arch }}-${{ hashFiles('melange.yaml') }}
+
             - name: Build package
+              if: steps.cache.outputs.cache-hit != 'true'
               uses: chainguard-dev/actions/melange-build@main
               with:
                   config: melange.yaml

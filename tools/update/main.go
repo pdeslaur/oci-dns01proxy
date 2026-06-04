@@ -23,7 +23,10 @@ func main() {
 	ctx := context.Background()
 
 	var cfg config
-	envconfig.MustProcess(ctx, &cfg)
+	if err := envconfig.Process(ctx, &cfg); err != nil {
+		slog.Error("processing config", "error", err)
+		os.Exit(1)
+	}
 
 	data, err := os.ReadFile(cfg.MelangeConfig)
 	if err != nil {
