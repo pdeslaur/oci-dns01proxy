@@ -1,6 +1,6 @@
 package:
     name: dns01proxy
-    version: "0.1.17"
+    version: "0.1.18"
     epoch: 0
     description: Proxy server for ACME DNS-01 challenges
     copyright:
@@ -27,7 +27,7 @@ pipeline:
       with:
           repository: https://github.com/liujed/dns01proxy
           tag: v${{package.version}}
-          expected-commit: 943774f753e7aab867cda631b92223dfeca6439b
+          expected-commit: 896ff68204ad13c3704573cd89d93e18170e225c
 
     - name: Generate all-providers main
       runs: |
