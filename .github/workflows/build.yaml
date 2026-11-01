@@ -1,0 +1,25 @@
+name: Build
+
+on:
+    pull_request:
+    push:
+        branches:
+            - main
+    schedule:
+        # Weekly rebuild to pick up Wolfi package and toolchain fixes.
+        - cron: "0 7 * * 1"
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+    contents: read
+    packages: write
+
+jobs:
+    build:
+        uses: pdeslaur/oci-common/.github/workflows/build.yaml@main
+        with:
+            publish: ${{ github.event_name != 'pull_request' }}
