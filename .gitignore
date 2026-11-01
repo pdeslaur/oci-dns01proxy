@@ -13,3 +13,6 @@ melange.rsa*
 
 # local dev
 .env
+
+# macOS
+.DS_Store
