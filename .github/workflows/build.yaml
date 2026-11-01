@@ -6,8 +6,8 @@ on:
         branches:
             - main
     schedule:
-        # Weekly rebuild to pick up Wolfi package and toolchain fixes.
-        - cron: "0 7 * * 1"
+        # Daily rebuild to pick up Wolfi package and toolchain fixes.
+        - cron: "0 7 * * *"
     workflow_dispatch:
 
 concurrency:
@@ -16,6 +16,7 @@ concurrency:
 
 permissions:
     contents: read
+    id-token: write # for keyless signing with cosign
     packages: write
 
 jobs:
