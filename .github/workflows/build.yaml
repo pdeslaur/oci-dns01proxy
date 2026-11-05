@@ -21,6 +21,6 @@ permissions:
 
 jobs:
     build:
-        uses: pdeslaur/oci-common/.github/workflows/build.yaml@main
+        uses: pdeslaur/oci-common/.github/workflows/build.yaml@source-date-epoch
         with:
             publish: ${{ github.event_name != 'pull_request' }}
