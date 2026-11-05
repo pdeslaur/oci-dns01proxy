@@ -64,3 +64,5 @@ pipeline:
 test:
     pipeline:
         - runs: /usr/bin/dns01proxy --help
+
+# TEST ONLY: change cache key
